@@ -1,0 +1,10 @@
+This description will show up on the steam page, check out https://steamcommunity.com/comment/Guide/formattinghelp.
+Load PNG and JPEG images from web URLs and place them as Vanilla Blocks, Exact RGB pixels, or recognized Terraria blocks with Schematic Mode.
+
+Press P by default to open Image Loader. The key can be changed in Controls.
+
+Includes transparent-image support, aspect-ratio controls, fullbright mosaics, map/minimap RGB colour, server-authoritative multiplayer placement, Gallery noclip and zoom, and optional Void Gallery world generation.
+
+Press P to open Image Loader or use /imageloader. Press G to toggle Gallery Mode.
+
+Works in Classic, Expert, Master, and Journey worlds.

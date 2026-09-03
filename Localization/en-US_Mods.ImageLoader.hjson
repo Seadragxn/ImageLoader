@@ -1,0 +1,41 @@
+Keybinds: {
+	OpenImageLoader.DisplayName: Open Image Loader
+	ToggleGalleryMode.DisplayName: Toggle Gallery Mode
+	GalleryZoomIn.DisplayName: Gallery Zoom In
+	GalleryZoomOut.DisplayName: Gallery Zoom Out
+}
+
+Configs: {
+	ImageLoaderConfig: {
+		DisplayName: Image Loader Config
+
+		EnableExactRgbBlocks: {
+			Label: Enable Exact Rgb Blocks
+			Tooltip: ""
+		}
+
+		EnableGalleryMode: {
+			Label: Enable Gallery Mode
+			Tooltip: ""
+		}
+
+		WorldGenerationMode: {
+			Label: New World Generation
+			Tooltip: Choose before creating a new world. Void Gallery creates a completely empty canvas and automatically enables Gallery Mode when entered.
+		}
+	}
+
+	ImageLoaderWorldGenerationMode: {
+		Tooltip: ""
+
+		Vanilla: {
+			Label: Normal Terraria
+			Tooltip: Generate a normal Terraria world.
+		}
+
+		VoidGallery: {
+			Label: Void Gallery (Empty)
+			Tooltip: Generate a new world with no terrain, caves, structures, ores, or biomes. Existing worlds are never erased.
+		}
+	}
+}

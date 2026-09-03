@@ -76,12 +76,29 @@ public sealed class GalleryCameraSystem : ModSystem
             return;
         }
 
-        _screenDrawAreaHook =
-            new Hook(
-                method,
-                (HookGetScreenDrawArea)
-                    ExpandScreenDrawArea
+        try
+        {
+            _screenDrawAreaHook =
+                new Hook(
+                    method,
+                    (HookGetScreenDrawArea)
+                        ExpandScreenDrawArea
+                );
+        }
+        catch (
+            Exception exception
+        )
+        {
+            // Camera expansion is optional. A tModLoader internal signature
+            // change must never prevent the rest of Image Loader from loading
+            // or unloading cleanly.
+            Mod.Logger.Warn(
+                $"Gallery Mode could not hook Terraria's tile draw area: {exception.Message}"
             );
+
+            _screenDrawAreaHook =
+                null;
+        }
     }
 
     public override void ModifyTransformMatrix(

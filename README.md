@@ -19,16 +19,12 @@
 
 Image Loader is a tModLoader mod for building pixel art and large galleries without manually placing thousands of blocks. Paste an image URL, choose a resolution and conversion mode, review the preview, then choose a position in the world.
 
-It includes three different workflows:
+It includes two conversion workflows:
 
 - **Vanilla Blocks** finds the closest safe solid Terraria block colour for every visible image pixel.
 - **Exact RGB** stores the original 24-bit colour in Image Loader pixel blocks for a much closer visual copy.
-- **Schematic Mode** assumes the source is a Terraria screenshot, analyzes Terraria-sized 16×16 cells, compares them with real vanilla tile textures, and leaves uncertain background cells unchanged.
 
 The placement system works in normal non-Journey worlds. It does not consume inventory items. In multiplayer, the server validates and performs the placement rather than trusting a client-side world edit.
-
-> [!IMPORTANT]
-> Schematic Mode recognizes safe single-tile solid blocks. A flattened screenshot does not contain enough information to perfectly recover walls, paint metadata, slopes, wires, liquids, actuators, furniture origins, or multi-tile frame data. The confidence filter intentionally skips cells it cannot identify safely.
 
 ## Screenshots
 
@@ -61,7 +57,6 @@ The placement system works in normal non-Journey worlds. It does not consume inv
 - Maximum conversion size is 16,384 cells.
 - Scale the current aspect-locked size down or up by 10%.
 - Restore the source aspect ratio in one click.
-- Schematic Mode automatically proposes one tile per 16 source pixels for native 100% Terraria screenshots.
 
 ### Vanilla Blocks
 
@@ -78,19 +73,10 @@ The placement system works in normal non-Journey worlds. It does not consume inv
 - Persists colour data in the world save.
 - Synchronizes colour data to joining multiplayer clients.
 - Draws the correct colours on the full map and minimap.
+- Drops a real colour-carrying block item when broken.
+- Names the dropped item from its stored value, such as `RGB 248, 34, 230`.
+- Restores the same RGB value when the item is placed again.
 - Can be disabled in the server-side mod configuration.
-
-### Schematic Mode
-
-- A clear **Schematic Mode: ON/OFF** toggle replaces the old screenshot-size preset.
-- Forces vanilla-block output while enabled.
-- Divides native Terraria screenshots into 16×16 source cells.
-- Builds recognition profiles from actual loaded vanilla tile textures.
-- Compensates for ordinary screenshot lighting differences during matching.
-- Uses texture detail and colour, not only a single average colour.
-- Rejects uncertain cells so sky and decorative backgrounds do not become random blocks.
-- Reports recognized and rejected cell totals before placement.
-- Uses the same safe preview, placement, bounds validation, and multiplayer path as normal vanilla conversion.
 
 ### Placement
 
@@ -108,13 +94,13 @@ The placement system works in normal non-Journey worlds. It does not consume inv
 - Fly through blocks with `W`, `A`, `S`, and `D`.
 - Hold Shift for fast movement.
 - Hold Ctrl for precise movement.
-- Zoom with Ctrl + mouse wheel.
-- Zoom with Page Up and Page Down as alternative keybinds.
-- Supports a 25%–400% gallery zoom range.
+- Zoom in with Ctrl + mouse wheel or Page Up.
+- Return toward normal 100% zoom by scrolling down; Gallery Mode never zooms farther out than the normal viewport.
+- Supports a 100%–400% gallery zoom range.
 - Hides the player and prevents damage while Gallery Mode is active.
 - Locks vanilla inventory/hotbar scrolling while Ctrl + wheel controls the camera.
 - Shows one persistent zoom label instead of filling chat with zoom messages.
-- Expands Terraria's tile and wall draw area while zooming out, then contracts it again when zooming in.
+- Adds a bright local light at the Gallery camera/player position so nearby blocks remain visible underground.
 
 ### Void Gallery worlds
 
@@ -172,7 +158,7 @@ Then use **Build + Reload** from the Develop Mods menu. This is useful when test
 3. Paste a direct PNG or JPEG URL.
 4. Select **Load URL**.
 5. Set the block width and height.
-6. Choose **Vanilla Blocks**, **Exact RGB**, or enable **Schematic Mode**.
+6. Choose **Vanilla Blocks** or **Exact RGB**.
 7. Select **Convert to Blocks**.
 8. Review the preview and recognition count.
 9. Select **Select Position**.
@@ -189,9 +175,8 @@ The `/imageloader` chat command also opens the menu.
 | Gallery movement | `W` `A` `S` `D` | Noclip movement |
 | Fast gallery movement | `Shift` | Hold while moving |
 | Precise gallery movement | `Ctrl` | Hold while moving |
-| Gallery zoom | `Ctrl` + wheel | Inventory scrolling is suppressed |
+| Gallery zoom in / reset | `Ctrl` + wheel | Clamped to 100%–400%; inventory scrolling is suppressed |
 | Gallery zoom in | `Page Up` | Rebindable |
-| Gallery zoom out | `Page Down` | Rebindable |
 | Confirm placement | Left mouse | Places the prepared image |
 | Cancel placement | Right mouse / `Escape` | Returns to the menu |
 
@@ -203,21 +188,8 @@ All registered keybinds can be changed in Terraria's Controls menu.
 | --- | --- | --- |
 | Vanilla Blocks | Survival-compatible palettes, maps, block mosaics | Limited to available safe tile colours |
 | Exact RGB | Logos, photos, detailed art, faithful colours | Requires Image Loader to remain enabled for colour metadata |
-| Schematic Mode | Screenshots of Terraria structures | Solid blocks only; uncertain cells are skipped |
 
-If the goal is visual fidelity, start with Exact RGB. If the result should be made from recognizable Terraria materials, use Vanilla Blocks. If the source is already a Terraria screenshot and is captured near native 100% scale, enable Schematic Mode.
-
-## Getting better Schematic Mode results
-
-- Use a screenshot captured at 100% in-game zoom when possible.
-- Avoid resizing the screenshot before loading it.
-- Crop out the HUD, cursor, chat, minimap, and external watermarks.
-- Use a clean shot with strong foreground lighting.
-- Keep the tile grid aligned with the source image edges where possible.
-- Treat the preview as a review step; rejected cells are intentionally transparent.
-- Use Exact RGB when the goal is a visual reproduction rather than a reconstructable block layout.
-
-Schematic Mode does not download a world or copy hidden Terraria state. It works only from the visible raster pixels in the supplied image.
+If the goal is visual fidelity, start with Exact RGB. If the result should be made from recognizable Terraria materials, use Vanilla Blocks. A flattened Terraria screenshot can be imported as visual pixel art with Exact RGB, but Image Loader does not claim to reconstruct hidden Terraria block metadata from screenshots.
 
 ## Configuration
 
@@ -246,7 +218,8 @@ Only install mods and release files from sources you trust. Back up important Te
 
 | Image Loader | Terraria | tModLoader | Status |
 | --- | --- | --- | --- |
-| 0.6.x | 1.4.4.9 | 2026.08 preview line | Current tested build |
+| 0.7.0 | 1.4.4.9 | 2026.08 preview line | Current tested build |
+| 0.6.0 | 1.4.4.9 | 2026.08 preview line | Superseded experimental schematic release |
 | 0.5.2 | 1.4.4 | Matching 1.4.4 preview build | Legacy binary/source tag |
 
 Image Loader is written for the Terraria 1.4.4 tModLoader API. A `.tmod` package is tied to the tModLoader build line that compiled it, so releases identify their tested loader version. Source users can build against another compatible 1.4.4 tModLoader installation, but unlisted versions are not claimed as verified.
@@ -256,7 +229,7 @@ Image Loader is written for the Terraria 1.4.4 tModLoader API. A `.tmod` package
 - `main` contains the latest stable release source.
 - `experimental` is the integration branch for features that still need in-game validation.
 - `legacy/0.5.x` preserves the final 0.5-series source.
-- Stable releases use semantic version tags such as `v0.6.0`.
+- Stable releases use semantic version tags such as `v0.7.0`.
 - Every release should include the matching `.tmod` package, compatibility note, and concise changelog.
 
 ## Building from the command line
@@ -283,7 +256,7 @@ For day-to-day Terraria development, **Build + Reload** in tModLoader is preferr
 - Use a direct image URL rather than a webpage containing an image.
 - Confirm the address begins with `http://` or `https://`.
 - Try opening the URL in a browser to confirm it returns a PNG or JPEG.
-- Very large downloads and source images over 16 megapixels are rejected.
+- Very large downloads and source images over 8 megapixels or 8192 pixels per side are rejected before GPU decoding.
 
 ### Transparent areas place blocks
 
@@ -291,9 +264,9 @@ For day-to-day Terraria development, **Build + Reload** in tModLoader is preferr
 - Confirm transparency appears as a checkerboard in the preview.
 - Some websites display a checkerboard baked into the image. Those grey and white squares are ordinary opaque pixels and cannot be treated as alpha automatically.
 
-### Schematic Mode skips part of a build
+### A broken Exact RGB block loses its colour
 
-That usually means the cell did not confidently match a safe solid vanilla tile. Backgrounds, walls, furniture, paint, lighting, slopes, and resized screenshots are intentionally difficult or unsupported. Use a native-scale crop or switch to Exact RGB for a visual copy.
+Version 0.7.0 drops a non-stacking item named with its stored RGB value and restores that value when placed. Make sure the world and all multiplayer clients use 0.7.0 or newer.
 
 ### The image looks dark
 
@@ -303,9 +276,9 @@ New vanilla image placements use fullbright coating. If an older placement preda
 
 Make sure all players are using the same Image Loader version, reconnect to request a fresh colour-data sync, and allow the minimap to reveal the area normally.
 
-### Gallery Mode zoom cuts off distant tiles
+### Gallery Mode will not zoom out below 100%
 
-Version 0.6.0 expands the tile/wall draw bounds with Gallery zoom. If another camera mod replaces the same rendering behavior, disable that camera mod temporarily and retest.
+This is intentional. Terraria does not reliably render world content outside its normal viewport, so version 0.7.0 removed misleading below-100% zoom-out and retained zoom-in only.
 
 ## Development notes
 
@@ -317,7 +290,7 @@ Common/
   Data/         Prepared image and conversion-mode data
   Map/          Exact RGB map/minimap drawing
   Players/      Gallery movement, protection, zoom, and sync
-  Services/     Image palettes, schematic recognition, placement, RGB storage
+  Services/     Image palettes, placement, and RGB storage
   Systems/      UI, camera/render bounds, lighting, and world generation
   Tiles/        Exact RGB pixel tile behavior
   UI/           Menu, text input, and image preview controls
@@ -329,10 +302,9 @@ Pull requests should keep placement server-authoritative, preserve transparent-c
 
 Potential future work includes:
 
-- Optional wall-layer recognition.
-- Grid-offset detection for externally cropped screenshots.
-- Paint and coating recognition.
-- User-adjustable schematic confidence.
+- Optional local image-file loading.
+- Colour-palette presets and dithering controls.
+- Paint and coating support for vanilla mosaics.
 - Undo/redo snapshots for large placements.
 - Saved local presets and recent URLs.
 - Dedicated stable packages for additional verified tModLoader build lines.

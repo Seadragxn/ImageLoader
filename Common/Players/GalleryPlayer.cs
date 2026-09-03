@@ -15,7 +15,7 @@ namespace ImageLoader.Common.Players;
 public sealed class GalleryPlayer : ModPlayer
 {
     public const float MinimumGalleryZoom =
-        0.25f;
+        1f;
 
     public const float MaximumGalleryZoom =
         4f;
@@ -122,18 +122,6 @@ public sealed class GalleryPlayer : ModPlayer
         {
             ChangeZoom(
                 0.1f
-            );
-        }
-
-        if (
-            global::ImageLoader.ImageLoader
-                .ZoomOutKeybind?
-                .JustPressed
-            == true
-        )
-        {
-            ChangeZoom(
-                -0.1f
             );
         }
 
@@ -267,7 +255,7 @@ public sealed class GalleryPlayer : ModPlayer
                     );
 
                 Main.NewText(
-                    "Gallery Mode ON | noclip WASD | Shift fast | Ctrl precise | Ctrl+wheel or PageUp/PageDown zoom | G exit",
+                    "Gallery Mode ON | noclip WASD | Shift fast | Ctrl precise | Ctrl+wheel or PageUp zoom in | G exit",
                     Color.LightBlue
                 );
             }
@@ -583,6 +571,18 @@ public sealed class GalleryPlayer : ModPlayer
 
         Player.breath =
             Player.breathMax;
+
+        // Gallery Mode hides the physical player, but the camera still needs
+        // a bright local light source so nearby ordinary blocks remain easy
+        // to inspect while flying through dark areas.
+        Lighting.AddLight(
+            Player.Center,
+            new Vector3(
+                2.2f,
+                2.2f,
+                2.2f
+            )
+        );
 
         if (
             Player.whoAmI

@@ -1,6 +1,6 @@
 Modify this file with a description of your mod.
-Load PNG and JPEG images from web URLs, convert them to vanilla or exact RGB blocks, or recognize solid vanilla tiles from Terraria screenshots with Schematic Mode. Preview the result and place it anywhere in the world.
+Load PNG and JPEG images from web URLs, convert them to vanilla or exact RGB blocks, preview the result, and place it anywhere in the world.
 
 Press P by default to open Image Loader. The key can be changed in Controls.
 
-Image placement is server-authoritative in multiplayer and works in Classic, Expert, Master, and Journey worlds. Gallery Mode adds noclip viewing, zoom-aware world rendering, and Ctrl+scroll zoom controls.
+Image placement is server-authoritative in multiplayer and works in Classic, Expert, Master, and Journey worlds. Exact RGB blocks can be broken, carried with their colour value, and placed again. Gallery Mode adds bright noclip viewing and zoom-in controls.

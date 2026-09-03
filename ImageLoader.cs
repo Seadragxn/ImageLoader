@@ -27,8 +27,6 @@ public sealed class ImageLoader : Mod
 
     public static ModKeybind ZoomInKeybind { get; private set; }
 
-    public static ModKeybind ZoomOutKeybind { get; private set; }
-
     public override void Load()
     {
         Instance = this;
@@ -54,11 +52,6 @@ public sealed class ImageLoader : Mod
             Keys.PageUp
         );
 
-        ZoomOutKeybind = KeybindLoader.RegisterKeybind(
-            this,
-            "GalleryZoomOut",
-            Keys.PageDown
-        );
     }
 
     public override void HandlePacket(
@@ -135,8 +128,6 @@ public sealed class ImageLoader : Mod
         OpenMenuKeybind = null;
         ToggleGalleryKeybind = null;
         ZoomInKeybind = null;
-        ZoomOutKeybind = null;
-
         Instance = null;
     }
 }

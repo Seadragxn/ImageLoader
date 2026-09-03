@@ -1,8 +1,11 @@
+using ImageLoader.Common.Items;
 using ImageLoader.Common.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace ImageLoader.Common.Tiles;
@@ -85,6 +88,19 @@ internal sealed class RgbPixelTile : ModTile
         ref bool noItem
     )
     {
+        Color storedColor =
+            Color.White;
+
+        bool shouldDrop =
+            !noItem
+            && !fail
+            && !effectOnly
+            && RgbPixelService.TryGetColor(
+                i,
+                j,
+                out storedColor
+            );
+
         noItem = true;
 
         if (
@@ -95,6 +111,94 @@ internal sealed class RgbPixelTile : ModTile
             RgbPixelService.RemoveColor(
                 i,
                 j
+            );
+
+            if (
+                shouldDrop
+                && Main.netMode
+                    != NetmodeID
+                        .MultiplayerClient
+            )
+            {
+                int itemIndex =
+                    Item.NewItem(
+                        new EntitySource_TileBreak(
+                            i,
+                            j
+                        ),
+                        i * 16,
+                        j * 16,
+                        16,
+                        16,
+                        ModContent.ItemType<
+                            RgbPixelItem
+                        >()
+                    );
+
+                if (
+                    itemIndex >= 0
+                    && itemIndex < Main.maxItems
+                    && Main.item[itemIndex]
+                        .ModItem
+                        is RgbPixelItem item
+                )
+                {
+                    item.ApplyColor(
+                        storedColor
+                    );
+
+                    if (
+                        Main.netMode
+                        == NetmodeID.Server
+                    )
+                    {
+                        NetMessage.SendData(
+                            MessageID.SyncItem,
+                            number: itemIndex
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    public override void PlaceInWorld(
+        int i,
+        int j,
+        Item item
+    )
+    {
+        if (
+            item.ModItem
+            is not RgbPixelItem rgbItem
+        )
+        {
+            return;
+        }
+
+        Color color =
+            rgbItem.StoredColor;
+
+        RgbPixelService.SetColor(
+            i,
+            j,
+            color
+        );
+
+        if (
+            Main.netMode
+            == NetmodeID.Server
+        )
+        {
+            RgbPixelService.BroadcastRegion(
+                i,
+                j,
+                1,
+                1,
+                new[]
+                {
+                    color
+                }
             );
         }
     }

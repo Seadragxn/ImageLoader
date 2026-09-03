@@ -684,7 +684,5 @@ public sealed class UIHandler : ModSystem
 
         ImagePalette.Unload();
 
-        SchematicRecognitionService
-            .Unload();
     }
 }

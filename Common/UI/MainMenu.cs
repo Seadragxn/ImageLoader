@@ -25,7 +25,16 @@ internal sealed class MainMenu :
         15 * 1024 * 1024;
 
     private const int MaxSourcePixels =
-        16 * 1024 * 1024;
+        8 * 1024 * 1024;
+
+    private const int MaxSourceDimension =
+        8192;
+
+    private const int PreviewMaximumWidth =
+        680;
+
+    private const int PreviewMaximumHeight =
+        240;
 
     private static readonly HttpClient
         HttpClient =
@@ -59,9 +68,6 @@ internal sealed class MainMenu :
         _galleryButton;
 
     private UITextPanel<string>
-        _schematicButton;
-
-    private UITextPanel<string>
         _clearUrlButton;
 
     private bool
@@ -89,9 +95,6 @@ internal sealed class MainMenu :
         _conversionMode =
             ImageConversionMode
                 .VanillaBlocks;
-
-    private bool
-        _schematicMode;
 
     public override void OnInitialize()
     {
@@ -151,8 +154,6 @@ internal sealed class MainMenu :
         CreateBottomButtons();
 
         RefreshModeButton();
-
-        RefreshSchematicButton();
 
         RefreshGalleryButton();
     }
@@ -371,24 +372,10 @@ internal sealed class MainMenu :
 
     private void CreateNotes()
     {
-        _schematicButton =
-            CreateButton(
-                "",
-                0f,
-                253f,
-                235f,
-                40f,
-                SchematicModeClicked
-            );
-
-        _panel.Append(
-            _schematicButton
-        );
-
         var screenshotHint =
             new UIText(
-                "ON: scans Terraria-sized 16x16 cells, recognizes safe vanilla blocks, and ignores uncertain background cells.",
-                0.68f
+                "Transparent pixels leave existing tiles unchanged. Exact RGB blocks keep the original 24-bit colour.",
+                0.72f
             )
             {
                 TextColor =
@@ -399,18 +386,18 @@ internal sealed class MainMenu :
             };
 
         screenshotHint.Left.Set(
-            250f,
+            0f,
             0f
         );
 
         screenshotHint.Top.Set(
-            263f,
+            257f,
             0f
         );
 
         screenshotHint.Width.Set(
-            430f,
-            0f
+            0f,
+            1f
         );
 
         _panel.Append(
@@ -431,7 +418,7 @@ internal sealed class MainMenu :
             };
 
         limit.Top.Set(
-            303f,
+            283f,
             0f
         );
 
@@ -458,7 +445,7 @@ internal sealed class MainMenu :
             };
 
         explanation.Top.Set(
-            322f,
+            309f,
             0f
         );
 
@@ -676,18 +663,6 @@ internal sealed class MainMenu :
     )
     {
         if (
-            _schematicMode
-        )
-        {
-            SetStatus(
-                "Schematic Mode uses real vanilla blocks. Turn it OFF before choosing Exact RGB.",
-                Color.LightGray
-            );
-
-            return;
-        }
-
-        if (
             _conversionMode
             == ImageConversionMode
                 .VanillaBlocks
@@ -768,80 +743,6 @@ internal sealed class MainMenu :
                 break;
             }
         }
-    }
-
-    private void SchematicModeClicked(
-        UIMouseEvent evt,
-        UIElement listeningElement
-    )
-    {
-        _schematicMode =
-            !_schematicMode;
-
-        if (
-            _schematicMode
-        )
-        {
-            _conversionMode =
-                ImageConversionMode
-                    .VanillaBlocks;
-
-            ApplySchematicDimensions();
-        }
-
-        InvalidatePreparedImage();
-
-        RefreshModeButton();
-
-        RefreshSchematicButton();
-
-        SetStatus(
-            _schematicMode
-                ? "Schematic Mode ON. Convert will recognize real solid vanilla tiles and reject uncertain screenshot background."
-                : "Schematic Mode OFF. Normal colour conversion restored.",
-            _schematicMode
-                ? Color.LightGreen
-                : Color.LightGray
-        );
-    }
-
-    private void RefreshSchematicButton()
-    {
-        if (
-            _schematicButton is null
-        )
-        {
-            return;
-        }
-
-        _schematicButton.SetText(
-            _schematicMode
-                ? "Schematic Mode: ON"
-                : "Schematic Mode: OFF"
-        );
-
-        _schematicButton.BackgroundColor =
-            _schematicMode
-                ? new Color(
-                    46,
-                    108,
-                    82
-                )
-                : new Color(
-                    63,
-                    82,
-                    125
-                );
-    }
-
-    private void InvalidatePreparedImage()
-    {
-        _preparedImage =
-            null;
-
-        UIHandler.SetPreparedImage(
-            null
-        );
     }
 
     private void GalleryClicked(
@@ -1086,59 +987,6 @@ internal sealed class MainMenu :
         );
     }
 
-    private void ApplySchematicDimensions()
-    {
-        if (
-            _sourcePixels is null
-            || _sourceWidth < 1
-            || _sourceHeight < 1
-        )
-        {
-            return;
-        }
-
-        int width =
-            Math.Max(
-                1,
-                (int)Math.Round(
-                    _sourceWidth
-                    / 16d
-                )
-            );
-
-        int height =
-            Math.Max(
-                1,
-                (int)Math.Round(
-                    _sourceHeight
-                    / 16d
-                )
-            );
-
-        if (
-            width > ImagePlacementService.MaxWidth
-            || height > ImagePlacementService.MaxHeight
-            || width * height
-                > ImagePlacementService.MaxPixels
-        )
-        {
-            (
-                width,
-                height
-            ) =
-                FitInsideLimits(
-                    width,
-                    height
-                );
-        }
-
-        ApplyDimensions(
-            width,
-            height
-        );
-
-    }
-
     private void ApplyAspectLongSide(
         int longSide
     )
@@ -1333,41 +1181,54 @@ internal sealed class MainMenu :
             return;
         }
 
+        Texture2D decodedTexture =
+            null;
+
         try
         {
+            if (
+                !TryReadImageDimensions(
+                    bytes,
+                    out int encodedWidth,
+                    out int encodedHeight
+                )
+            )
+            {
+                throw new InvalidDataException(
+                    "the response is not a valid PNG or JPEG"
+                );
+            }
+
+            ValidateSourceDimensions(
+                encodedWidth,
+                encodedHeight
+            );
+
             using var stream =
                 new MemoryStream(
                     bytes,
                     writable: false
                 );
 
-            Texture2D texture =
+            decodedTexture =
                 Texture2D.FromStream(
                     Main.instance
                         .GraphicsDevice,
                     stream
                 );
 
-            if (
-                (long)texture.Width
-                * texture.Height
-                > MaxSourcePixels
-            )
-            {
-                texture.Dispose();
-
-                throw new InvalidDataException(
-                    "the image resolution exceeds 16 megapixels"
-                );
-            }
+            ValidateSourceDimensions(
+                decodedTexture.Width,
+                decodedTexture.Height
+            );
 
             var pixels =
                 new Color[
-                    texture.Width
-                    * texture.Height
+                    decodedTexture.Width
+                    * decodedTexture.Height
                 ];
 
-            texture.GetData(
+            decodedTexture.GetData(
                 pixels
             );
 
@@ -1375,10 +1236,10 @@ internal sealed class MainMenu :
                 pixels;
 
             _sourceWidth =
-                texture.Width;
+                decodedTexture.Width;
 
             _sourceHeight =
-                texture.Height;
+                decodedTexture.Height;
 
             _preparedImage =
                 null;
@@ -1387,8 +1248,19 @@ internal sealed class MainMenu :
                 null
             );
 
-            _preview.SetTexture(
-                texture
+            Color[] previewPixels =
+                CreatePreviewPixels(
+                    pixels,
+                    decodedTexture.Width,
+                    decodedTexture.Height,
+                    out int previewWidth,
+                    out int previewHeight
+                );
+
+            _preview.SetPixels(
+                previewPixels,
+                previewWidth,
+                previewHeight
             );
 
             (
@@ -1396,8 +1268,8 @@ internal sealed class MainMenu :
                 int height
             ) =
                 FitInsideLimits(
-                    texture.Width,
-                    texture.Height
+                decodedTexture.Width,
+                decodedTexture.Height
                 );
 
             _widthInput.Value =
@@ -1406,24 +1278,32 @@ internal sealed class MainMenu :
             _heightInput.Value =
                 height.ToString();
 
-            if (
-                _schematicMode
-            )
-            {
-                ApplySchematicDimensions();
-            }
-
             int transparentPixels =
                 0;
 
             int partiallyTransparentPixels =
                 0;
 
-            foreach (
-                Color pixel
-                in pixels
+            int alphaSampleStride =
+                Math.Max(
+                    1,
+                    pixels.Length
+                    / 500_000
+                );
+
+            int alphaSamples = 0;
+
+            for (
+                int pixelIndex = 0;
+                pixelIndex < pixels.Length;
+                pixelIndex += alphaSampleStride
             )
             {
+                Color pixel =
+                    pixels[pixelIndex];
+
+                alphaSamples++;
+
                 if (
                     pixel.A
                     < ImagePlacementService
@@ -1455,19 +1335,19 @@ internal sealed class MainMenu :
                 double transparentPercent =
                     transparentPixels
                     * 100d
-                    / pixels.Length;
+                    / alphaSamples;
 
                 double partialPercent =
                     partiallyTransparentPixels
                     * 100d
-                    / pixels.Length;
+                    / alphaSamples;
 
                 transparencyInfo =
                     $"{transparentPercent:0.#}% transparent, {partialPercent:0.#}% partial alpha";
             }
 
             _sourceInfo.SetText(
-                $"Source: {texture.Width:N0} x {texture.Height:N0} pixels | Alpha: {transparencyInfo}"
+                $"Source: {decodedTexture.Width:N0} x {decodedTexture.Height:N0} pixels | Alpha: {transparencyInfo}"
             );
 
             SetStatus(
@@ -1483,6 +1363,16 @@ internal sealed class MainMenu :
                 $"That file is not a supported PNG or JPEG: {ShortMessage(exception)}",
                 Color.OrangeRed
             );
+        }
+        finally
+        {
+            if (
+                decodedTexture is not null
+                && !decodedTexture.IsDisposed
+            )
+            {
+                decodedTexture.Dispose();
+            }
         }
     }
 
@@ -1558,9 +1448,7 @@ internal sealed class MainMenu :
         }
 
         SetStatus(
-            _schematicMode
-                ? "Analyzing Terraria tile textures and rejecting screenshot background..."
-                : _conversionMode
+            _conversionMode
                 == ImageConversionMode
                     .ExactRgb
 
@@ -1571,9 +1459,15 @@ internal sealed class MainMenu :
             Color.LightBlue
         );
 
-        ushort[] tileTypes;
+        var tileTypes =
+            new ushort[
+                width * height
+            ];
 
-        Color[] previewColors;
+        var previewColors =
+            new Color[
+                width * height
+            ];
 
         Color[] exactColors =
             _conversionMode
@@ -1588,55 +1482,25 @@ internal sealed class MainMenu :
 
         int opaquePixels = 0;
 
-        int rejectedPixels = 0;
-
-        if (
-            _schematicMode
+        for (
+            int y = 0;
+            y < height;
+            y++
         )
         {
-            SchematicRecognitionService
-                .Convert(
-                    _sourcePixels,
-                    _sourceWidth,
-                    _sourceHeight,
-                    width,
-                    height,
-                    out tileTypes,
-                    out previewColors,
-                    out opaquePixels,
-                    out rejectedPixels
-                );
-        }
-        else
-        {
-            tileTypes =
-                new ushort[
-                    width * height
-                ];
-
-            previewColors =
-                new Color[
-                    width * height
-                ];
-
             for (
-                int y = 0;
-                y < height;
-                y++
+                int x = 0;
+                x < width;
+                x++
             )
             {
-                for (
-                    int x = 0;
-                    x < width;
-                )
-                {
-                    Color source =
-                        SampleSourcePixel(
-                            x,
-                            y,
-                            width,
-                            height
-                        );
+                Color source =
+                    SampleSourcePixel(
+                        x,
+                        y,
+                        width,
+                        height
+                    );
 
                     int index =
                         y * width + x;
@@ -1717,8 +1581,7 @@ internal sealed class MainMenu :
                             matchedColor;
                     }
 
-                    opaquePixels++;
-                }
+                opaquePixels++;
             }
         }
 
@@ -1743,9 +1606,7 @@ internal sealed class MainMenu :
         );
 
         string modeText =
-            _schematicMode
-                ? "Schematic Mode"
-                : _conversionMode
+            _conversionMode
                 == ImageConversionMode
                     .ExactRgb
 
@@ -1754,9 +1615,7 @@ internal sealed class MainMenu :
                 : "Vanilla Blocks";
 
         SetStatus(
-            _schematicMode
-                ? $"Ready: {opaquePixels:N0} recognized blocks; {rejectedPixels:N0} uncertain/background cells left unchanged. Review, then select a position."
-                : $"Ready: {opaquePixels:N0} blocks using {modeText}. Review the preview, then select a position.",
+            $"Ready: {opaquePixels:N0} blocks using {modeText}. Review the preview, then select a position.",
             Color.LightGreen
         );
     }
@@ -2189,6 +2048,288 @@ internal sealed class MainMenu :
 
         _status.TextColor =
             color;
+    }
+
+    private static void ValidateSourceDimensions(
+        int width,
+        int height
+    )
+    {
+        if (
+            width < 1
+            || height < 1
+            || width > MaxSourceDimension
+            || height > MaxSourceDimension
+            || (long)width * height
+                > MaxSourcePixels
+        )
+        {
+            throw new InvalidDataException(
+                "the image dimensions exceed the safe 8-megapixel / 8192-pixel limit"
+            );
+        }
+    }
+
+    private static Color[] CreatePreviewPixels(
+        Color[] source,
+        int sourceWidth,
+        int sourceHeight,
+        out int previewWidth,
+        out int previewHeight
+    )
+    {
+        double scale =
+            Math.Min(
+                1d,
+                Math.Min(
+                    PreviewMaximumWidth
+                    / (double)sourceWidth,
+                    PreviewMaximumHeight
+                    / (double)sourceHeight
+                )
+            );
+
+        previewWidth =
+            Math.Max(
+                1,
+                (int)Math.Round(
+                    sourceWidth
+                    * scale
+                )
+            );
+
+        previewHeight =
+            Math.Max(
+                1,
+                (int)Math.Round(
+                    sourceHeight
+                    * scale
+                )
+            );
+
+        if (
+            previewWidth == sourceWidth
+            && previewHeight == sourceHeight
+        )
+        {
+            return source;
+        }
+
+        var preview =
+            new Color[
+                previewWidth
+                * previewHeight
+            ];
+
+        for (
+            int y = 0;
+            y < previewHeight;
+            y++
+        )
+        {
+            int sourceY =
+                Math.Min(
+                    sourceHeight - 1,
+                    (
+                        y * 2 + 1
+                    )
+                    * sourceHeight
+                    / (
+                        previewHeight * 2
+                    )
+                );
+
+            for (
+                int x = 0;
+                x < previewWidth;
+                x++
+            )
+            {
+                int sourceX =
+                    Math.Min(
+                        sourceWidth - 1,
+                        (
+                            x * 2 + 1
+                        )
+                        * sourceWidth
+                        / (
+                            previewWidth * 2
+                        )
+                    );
+
+                preview[
+                    y * previewWidth + x
+                ] =
+                    source[
+                        sourceY * sourceWidth
+                        + sourceX
+                    ];
+            }
+        }
+
+        return preview;
+    }
+
+    private static bool TryReadImageDimensions(
+        byte[] bytes,
+        out int width,
+        out int height
+    )
+    {
+        width = 0;
+
+        height = 0;
+
+        if (
+            bytes.Length >= 24
+            && bytes[0] == 0x89
+            && bytes[1] == 0x50
+            && bytes[2] == 0x4E
+            && bytes[3] == 0x47
+            && bytes[4] == 0x0D
+            && bytes[5] == 0x0A
+            && bytes[6] == 0x1A
+            && bytes[7] == 0x0A
+        )
+        {
+            width =
+                ReadBigEndianInt32(
+                    bytes,
+                    16
+                );
+
+            height =
+                ReadBigEndianInt32(
+                    bytes,
+                    20
+                );
+
+            return width > 0
+                && height > 0;
+        }
+
+        if (
+            bytes.Length < 4
+            || bytes[0] != 0xFF
+            || bytes[1] != 0xD8
+        )
+        {
+            return false;
+        }
+
+        int offset = 2;
+
+        while (
+            offset + 8 < bytes.Length
+        )
+        {
+            while (
+                offset < bytes.Length
+                && bytes[offset] == 0xFF
+            )
+            {
+                offset++;
+            }
+
+            if (
+                offset >= bytes.Length
+            )
+            {
+                break;
+            }
+
+            byte marker =
+                bytes[offset++];
+
+            if (
+                marker == 0xD8
+                || marker == 0xD9
+            )
+            {
+                continue;
+            }
+
+            if (
+                offset + 1 >= bytes.Length
+            )
+            {
+                break;
+            }
+
+            int segmentLength =
+                bytes[offset] * 256
+                + bytes[offset + 1];
+
+            if (
+                segmentLength < 2
+                || offset + segmentLength
+                    > bytes.Length
+            )
+            {
+                break;
+            }
+
+            if (
+                IsJpegStartOfFrame(
+                    marker
+                )
+                && segmentLength >= 7
+            )
+            {
+                height =
+                    bytes[offset + 3] * 256
+                    + bytes[offset + 4];
+
+                width =
+                    bytes[offset + 5] * 256
+                    + bytes[offset + 6];
+
+                return width > 0
+                    && height > 0;
+            }
+
+            offset +=
+                segmentLength;
+        }
+
+        return false;
+    }
+
+    private static bool IsJpegStartOfFrame(
+        byte marker
+    )
+    {
+        return marker
+            is 0xC0
+            or 0xC1
+            or 0xC2
+            or 0xC3
+            or 0xC5
+            or 0xC6
+            or 0xC7
+            or 0xC9
+            or 0xCA
+            or 0xCB
+            or 0xCD
+            or 0xCE
+            or 0xCF;
+    }
+
+    private static int ReadBigEndianInt32(
+        byte[] bytes,
+        int offset
+    )
+    {
+        return (
+                bytes[offset] << 24
+            )
+            | (
+                bytes[offset + 1] << 16
+            )
+            | (
+                bytes[offset + 2] << 8
+            )
+            | bytes[offset + 3];
     }
 
     private static async Task<byte[]>

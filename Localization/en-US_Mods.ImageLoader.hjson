@@ -2,7 +2,6 @@ Keybinds: {
 	OpenImageLoader.DisplayName: Open Image Loader
 	ToggleGalleryMode.DisplayName: Toggle Gallery Mode
 	GalleryZoomIn.DisplayName: Gallery Zoom In
-	GalleryZoomOut.DisplayName: Gallery Zoom Out
 }
 
 Configs: {

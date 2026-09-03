@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.svg" alt="Image Loader for Terraria" width="100%">
+  <img src="docs/images/banner.png" alt="Image Loader for Terraria — load, convert, place" width="100%">
 </p>
 
 <p align="center">
@@ -39,6 +39,18 @@ The placement system works in normal non-Journey worlds. It does not consume inv
 </p>
 
 <p align="center"><em>Gallery Mode makes large image installations easier to inspect.</em></p>
+
+<p align="center">
+  <img src="docs/images/exact-rgb-placement.png" alt="Exact RGB duck image being positioned in Terraria" width="900">
+</p>
+
+<p align="center"><em>Exact RGB output preserves clean source colours instead of reducing the image to the vanilla palette.</em></p>
+
+<p align="center">
+  <img src="docs/images/map-support.png" alt="Exact RGB duck artwork visible on Terraria minimap and full map" width="900">
+</p>
+
+<p align="center"><em>Exact RGB artwork is represented on both Terraria's minimap and full-screen map.</em></p>
 
 ## Feature overview
 
@@ -218,7 +230,8 @@ Only install mods and release files from sources you trust. Back up important Te
 
 | Image Loader | Terraria | tModLoader | Status |
 | --- | --- | --- | --- |
-| 0.7.0 | 1.4.4.9 | 2026.08 preview line | Current tested build |
+| 0.7.1 | 1.4.4.9 | 2026.08 preview line | Current tested build |
+| 0.7.0 | 1.4.4.9 | 2026.08 preview line | Previous stable build |
 | 0.6.0 | 1.4.4.9 | 2026.08 preview line | Superseded experimental schematic release |
 | 0.5.2 | 1.4.4 | Matching 1.4.4 preview build | Legacy binary/source tag |
 
@@ -229,7 +242,7 @@ Image Loader is written for the Terraria 1.4.4 tModLoader API. A `.tmod` package
 - `main` contains the latest stable release source.
 - `experimental` is the integration branch for features that still need in-game validation.
 - `legacy/0.5.x` preserves the final 0.5-series source.
-- Stable releases use semantic version tags such as `v0.7.0`.
+- Stable releases use semantic version tags such as `v0.7.1`.
 - Every release should include the matching `.tmod` package, compatibility note, and concise changelog.
 
 ## Building from the command line

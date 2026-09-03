@@ -1,5 +1,5 @@
 displayName = Image Loader
 author = seadragxn
-version = 0.7.0
+version = 0.7.1
 side = Both
-buildIgnore = .git/*, .github/*, docs/*, dist/*, README.md
+buildIgnore = .git/*, .github/*, docs/*, dist/*, tools/*, README.md

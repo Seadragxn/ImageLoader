@@ -441,27 +441,6 @@ public sealed class UIHandler : ModSystem
                     - 28f
             );
 
-        var background =
-            new Rectangle(
-                (int)position.X - 8,
-                (int)position.Y - 5,
-                (int)textSize.X + 16,
-                (int)textSize.Y + 10
-            );
-
-        spriteBatch.Draw(
-            TextureAssets
-                .MagicPixel
-                .Value,
-            background,
-            new Color(
-                15,
-                22,
-                38,
-                205
-            )
-        );
-
         Utils.DrawBorderString(
             spriteBatch,
             text,

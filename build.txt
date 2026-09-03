@@ -1,0 +1,4 @@
+displayName = Image Loader
+author = seadragxn
+version = 0.5.2
+side = Both

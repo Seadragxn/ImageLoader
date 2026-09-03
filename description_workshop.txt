@@ -1,0 +1,6 @@
+This description will show up on the steam page, check out https://steamcommunity.com/comment/Guide/formattinghelp.
+Load PNG and JPEG images from web URLs, convert their pixels to the closest Terraria solid-block colours, preview the result, and place it anywhere in the world.
+
+Press P by default to open Image Loader. The key can be changed in Controls.
+
+Image placement is server-authoritative in multiplayer and works in Classic, Expert, Master, and Journey worlds.
